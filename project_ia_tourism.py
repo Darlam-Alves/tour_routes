@@ -72,12 +72,34 @@ def nome_para_codigo(nome, pontos_turisticos):
     return None  
 
 
+def distancia_real(codigo_origem, codigo_destino){
+
+}
+
+def tempo_real(codigo_origem, codigo_destino){
+
+}
+
+def distancia_final(codigo_origem, codigo_destino){
+
+}
+
+def funcao_de_custo_real(dReal, tReal){
+
+}
+
+def funcao_de_avaliacao(dFinal){
+    
+}
 def busca_a_estrela(grafo, nome_origem, nome_destino, pontos_proximos, funcaoTotal):
     codigo_origem = nome_para_codigo(nome_origem, pontos_turisticos)
     codigo_destino = nome_para_codigo(nome_destino, pontos_turisticos)
 
     pontos_proximos_origem = pontos_proximos.get(codigo_origem, {})
-    pontos_proximos_destino = pontos_proximos.get(codigo_destino, {})
+    
+
+
+
 
 """     print("Os 5 pontos mais próximos à origem (", nome_origem, ") são:")
     for ponto, distancia in pontos_proximos_origem.items():
