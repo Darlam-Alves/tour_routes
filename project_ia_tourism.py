@@ -33,20 +33,25 @@ grafo = criar_grafo(matriz_distancia)
 def dfs(grafo, origem, destino, visitados=None, caminho=None):
     if visitados is None:
         visitados = set()
+        
     if caminho is None:
         caminho = []
-    caminhos_explorados = []  # Adiciona essa linha
+
+    caminhos_explorados = [] 
     visitados.add(origem)
     caminho.append(origem)
+
     if origem == destino:
-        caminhos_explorados.append(caminho.copy())  # Adiciona essa linha
+        caminhos_explorados.append(caminho.copy())  
         return caminho
+
     for vizinho in grafo[origem]:
         if vizinho not in visitados:
             novo_caminho = dfs(grafo, vizinho, destino, visitados, caminho)
             if novo_caminho:
-                caminhos_explorados.extend(novo_caminho)  # Adiciona essa linha
+                caminhos_explorados.extend(novo_caminho)  
                 return novo_caminho
+
     caminho.pop()
     return None
 
@@ -60,6 +65,21 @@ def encontrar_pontos_proximos(df):
         pontos_proximos[ponto] = pontos_mais_proximos
     return pontos_proximos
 
+def nome_para_codigo(nome, pontos_turisticos):
+    for codigo, nome_ponto in pontos_turisticos.items():
+        if nome_ponto == nome:
+            return codigo
+    return None  
+
+
+def busca_a_estrela(grafo, nome_origem, nome_destino, funcaoTotal):
+    codigo_origem = nome_para_codigo(nome_origem, pontos_turisticos)
+    codigo_destino = nome_para_codigo(nome_destino, pontos_turisticos)
+
+   
+
+
+
 if __name__ == "__main__":
 
      # Carregar o arquivo CSV
@@ -70,13 +90,15 @@ if __name__ == "__main__":
 
     origem = "Sede da empresa (Ponto inicial)"
     destino = "Templo de Apolo"
+
     caminho = dfs(grafo, origem, destino)
+    busca_a_estrela(grafo, origem, destino, 0)
 
 """     for ponto, proximos in pontos_proximos.items():
         print("Os 5 pontos mais próximos a", ponto, "são:")
-        print(proximos) """
+        print(proximos) 
 
-    """ if caminho:
+    if caminho:
         print(" -> ".join(caminho))
     else:
-        print("caminho nao encontrado") """
+        print("caminho nao encontrado")  """
