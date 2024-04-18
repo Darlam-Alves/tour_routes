@@ -8,7 +8,7 @@ pontos_turisticos = {}
 for index, row in tabela.iterrows():
     pontos_turisticos[row["Place ID"]] = row["Name"]
 
-matriz_distancia = pd.read_csv("matriz_indexada.csv", index_col=0)
+matriz_distancia = pd.read_csv("matriz_distancia_carro_km.csv", index_col=0)
 
 # Tradução dos códigos dos pontos turísticos para nomes
 matriz_distancia.rename(index=pontos_turisticos, columns=pontos_turisticos, inplace=True)
@@ -72,9 +72,20 @@ def nome_para_codigo(nome, pontos_turisticos):
     return None  
 
 
-def busca_a_estrela(grafo, nome_origem, nome_destino, funcaoTotal):
+def busca_a_estrela(grafo, nome_origem, nome_destino, pontos_proximos, funcaoTotal):
     codigo_origem = nome_para_codigo(nome_origem, pontos_turisticos)
     codigo_destino = nome_para_codigo(nome_destino, pontos_turisticos)
+
+    pontos_proximos_origem = pontos_proximos.get(codigo_origem, {})
+    pontos_proximos_destino = pontos_proximos.get(codigo_destino, {})
+
+"""     print("Os 5 pontos mais próximos à origem (", nome_origem, ") são:")
+    for ponto, distancia in pontos_proximos_origem.items():
+        print(ponto, distancia)
+
+    print("\nOs 5 pontos mais próximos ao destino (", nome_destino, ") são:")
+    for ponto, distancia in pontos_proximos_destino.items():
+        print(ponto, distancia) """
 
    
 
@@ -92,13 +103,13 @@ if __name__ == "__main__":
     destino = "Templo de Apolo"
 
     caminho = dfs(grafo, origem, destino)
-    busca_a_estrela(grafo, origem, destino, 0)
+    busca_a_estrela(grafo, origem, destino, pontos_proximos, 0)
 
 """     for ponto, proximos in pontos_proximos.items():
         print("Os 5 pontos mais próximos a", ponto, "são:")
-        print(proximos) 
+        print(proximos)  """
 
-    if caminho:
+"""     if caminho:
         print(" -> ".join(caminho))
     else:
-        print("caminho nao encontrado")  """
+        print("caminho nao encontrado")  """ 
