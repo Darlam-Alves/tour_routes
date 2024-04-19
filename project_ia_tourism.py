@@ -73,37 +73,49 @@ def nome_para_codigo(nome, pontos_turisticos):
 
 
 def distancia_real(codigo_origem, codigo_destino):
-    # Ler o arquivo CSV com as distâncias
     matriz_distancias = pd.read_csv("matriz_distancia_carro_km.csv", index_col=0)
-
-    # Obter a distância correspondente na matriz
-    distancia = matriz_distancias.loc[codigo_origem, codigo_destino]
-
+    matriz_distancias = matriz_distancias.replace(",", ".", regex=True)  # Substituir vírgulas por pontos
+    distancia = pd.to_numeric(matriz_distancias.loc[codigo_origem, codigo_destino], errors='coerce')
+    #print("distancia: ", distancia)
     return distancia
 
-
-
-""" def tempo_real(codigo_origem, codigo_destino):
-
-
+def tempo_real(codigo_origem, codigo_destino):
+    matriz_distancias = pd.read_csv("matriz_tempo_carro_horas.csv", index_col=0)
+    matriz_distancias = matriz_distancias.replace(",", ".", regex=True)  # Substituir vírgulas por pontos
+    tempo = pd.to_numeric(matriz_distancias.loc[codigo_origem, codigo_destino], errors='coerce')
+    #print("tempo: ", tempo)
+    return tempo
 
 def distancia_final(codigo_origem, codigo_destino):
+    matriz_distancias = pd.read_csv("matriz_distancia_euclidiana.csv", index_col=0)
+    matriz_distancias = matriz_distancias.replace(",", ".", regex=True)  # Substituir vírgulas por pontos
+    distanciaEuclidiana = pd.to_numeric(matriz_distancias.loc[codigo_origem, codigo_destino], errors='coerce')
+    #print("distanciaEuclidiana: ", distanciaEuclidiana)
+    return distanciaEuclidiana
 
 
+def funcao_de_custo_real(codigo_origem, codigo_destino):
+    dReal = distancia_real(codigo_origem, codigo_destino)
+    tReal = tempo_real(codigo_origem, codigo_destino)
+    resultado = (dReal*tReal) * (5.93 / 2.215)
+    return resultado
 
-def funcao_de_custo_real(dReal, tReal):
 
-
-
-def funcao_de_avaliacao(dFinal):  """
-
+def funcao_de_avaliacao(codigo_origem, codigo_destino):  
+    dFinal = distancia_final(codigo_origem, codigo_destino)
+    resultado = (5.93 / (2.215*90)) * (dFinal * dFinal)
+    return resultado
 
 def busca_a_estrela(grafo, nome_origem, nome_destino, pontos_proximos, funcaoTotal):
     codigo_origem = nome_para_codigo(nome_origem, pontos_turisticos)
     codigo_destino = nome_para_codigo(nome_destino, pontos_turisticos)
 
     pontos_proximos_origem = pontos_proximos.get(codigo_origem, {})
-    dReal = distancia_real(codigo_origem, codigo_destino)
+
+    FC = funcao_de_custo_real(codigo_origem, codigo_destino)
+    FA = funcao_de_avaliacao(codigo_origem, codigo_destino)
+
+    funcao_total = FC + FA ; 
 
     
 
