@@ -1,4 +1,6 @@
 import pandas as pd
+from queue import PriorityQueue
+
 tabela = pd.read_csv("pontos_turisticos-rio.csv")
 
 # dicionario com {codigo, nome}
@@ -61,7 +63,7 @@ def encontrar_pontos_proximos(df):
     for ponto, distancias in df.iterrows():
         distancias = distancias.str.replace(',', '.').astype(float)  
         distancias_ordenadas = distancias.sort_values()
-        pontos_mais_proximos = distancias_ordenadas.iloc[1:6]  
+        pontos_mais_proximos = distancias_ordenadas.index[1:6]  # Obter apenas os índices (códigos) dos pontos mais próximos
         pontos_proximos[ponto] = pontos_mais_proximos
     return pontos_proximos
 
@@ -71,6 +73,11 @@ def nome_para_codigo(nome, pontos_turisticos):
             return codigo
     return None  
 
+def codigo_para_nome(codigo, pontos_turisticos):
+    for codigo_ponto, nome_ponto in pontos_turisticos.items():
+        if codigo_ponto == codigo:
+            return nome_ponto
+    return None
 
 def distancia_real(codigo_origem, codigo_destino):
     matriz_distancias = pd.read_csv("matriz_distancia_carro_km.csv", index_col=0)
@@ -93,30 +100,63 @@ def distancia_final(codigo_origem, codigo_destino):
     #print("distanciaEuclidiana: ", distanciaEuclidiana)
     return distanciaEuclidiana
 
-
 def funcao_de_custo_real(codigo_origem, codigo_destino):
     dReal = distancia_real(codigo_origem, codigo_destino)
     tReal = tempo_real(codigo_origem, codigo_destino)
     resultado = (dReal*tReal) * (5.93 / 2.215)
     return resultado
 
-
 def funcao_de_avaliacao(codigo_origem, codigo_destino):  
     dFinal = distancia_final(codigo_origem, codigo_destino)
     resultado = (5.93 / (2.215*90)) * (dFinal * dFinal)
     return resultado
 
-def busca_a_estrela(grafo, nome_origem, nome_destino, pontos_proximos, funcaoTotal):
+def busca_a_estrela(grafo, nome_origem, nome_destino, pontos_proximos):
     codigo_origem = nome_para_codigo(nome_origem, pontos_turisticos)
     codigo_destino = nome_para_codigo(nome_destino, pontos_turisticos)
 
-    pontos_proximos_origem = pontos_proximos.get(codigo_origem, {})
 
-    FC = funcao_de_custo_real(codigo_origem, codigo_destino)
-    FA = funcao_de_avaliacao(codigo_origem, codigo_destino)
+    visitados = set()
+    fila_prioridade = PriorityQueue()
+    fila_prioridade.put((0, codigo_origem))
 
-    funcao_total = FC + FA ; 
+    # Dicionário para armazenar o caminho percorrido até cada nó
+    caminho = {codigo_origem: None}
 
+    while not fila_prioridade.empty():
+        custo_total, atual = fila_prioridade.get()
+        cod_atual_nome = codigo_para_nome(atual, pontos_turisticos)
+
+        print ("atual: ", cod_atual_nome)
+        if atual == codigo_destino:
+            print("custo total:", custo_total)
+            caminho_percurso = reconstruir_caminho(caminho, codigo_origem, codigo_destino, pontos_turisticos)
+            print("Caminho percorrido:", caminho_percurso)
+            break
+
+        visitados.add(atual)
+        vizinhos = pontos_proximos.get(atual, [])
+        for vizinho in vizinhos:
+            if vizinho not in visitados:
+                FC = funcao_de_custo_real(atual, vizinho)
+                FA = funcao_de_avaliacao(vizinho, codigo_destino)
+                custo_total_vizinho = custo_total + FC + FA
+
+                # Atualizar o caminho
+                caminho[vizinho] = atual
+
+                fila_prioridade.put((custo_total_vizinho, vizinho))
+
+def reconstruir_caminho(caminho, origem, destino, pontos_turisticos):
+    caminho_percurso = []
+    atual = destino
+    while atual != origem:
+        nome_atual = codigo_para_nome(atual, pontos_turisticos)
+        caminho_percurso.append(nome_atual)
+        atual = caminho[atual]
+    caminho_percurso.append(codigo_para_nome(origem, pontos_turisticos))
+    caminho_percurso.reverse()
+    return caminho_percurso
     
 
 
@@ -136,18 +176,17 @@ def busca_a_estrela(grafo, nome_origem, nome_destino, pontos_proximos, funcaoTot
 
 
 if __name__ == "__main__":
-
-     # Carregar o arquivo CSV
+    # Carregar o arquivo CSV
     df = pd.read_csv('matriz_tempo_carro_horas.csv', index_col=0)
     
     # Encontrar os 5 pontos mais próximos para cada ponto turístico
     pontos_proximos = encontrar_pontos_proximos(df)
 
     origem = "Sede da empresa (Ponto inicial)"
-    destino = "Templo de Apolo"
+    destino = "Cristo Redentor"
 
     caminho = dfs(grafo, origem, destino)
-    busca_a_estrela(grafo, origem, destino, pontos_proximos, 0)
+    busca_a_estrela(grafo, origem, destino, pontos_proximos)
 
 """     for ponto, proximos in pontos_proximos.items():
         print("Os 5 pontos mais próximos a", ponto, "são:")
