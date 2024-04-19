@@ -72,31 +72,41 @@ def nome_para_codigo(nome, pontos_turisticos):
     return None  
 
 
-def distancia_real(codigo_origem, codigo_destino){
+def distancia_real(codigo_origem, codigo_destino):
+    # Ler o arquivo CSV com as distâncias
+    matriz_distancias = pd.read_csv("matriz_distancia_carro_km.csv", index_col=0)
 
-}
+    # Obter a distância correspondente na matriz
+    distancia = matriz_distancias.loc[codigo_origem, codigo_destino]
 
-def tempo_real(codigo_origem, codigo_destino){
+    return distancia
 
-}
 
-def distancia_final(codigo_origem, codigo_destino){
 
-}
+""" def tempo_real(codigo_origem, codigo_destino):
 
-def funcao_de_custo_real(dReal, tReal){
 
-}
 
-def funcao_de_avaliacao(dFinal){
-    
-}
+def distancia_final(codigo_origem, codigo_destino):
+
+
+
+def funcao_de_custo_real(dReal, tReal):
+
+
+
+def funcao_de_avaliacao(dFinal):  """
+
+
 def busca_a_estrela(grafo, nome_origem, nome_destino, pontos_proximos, funcaoTotal):
     codigo_origem = nome_para_codigo(nome_origem, pontos_turisticos)
     codigo_destino = nome_para_codigo(nome_destino, pontos_turisticos)
 
     pontos_proximos_origem = pontos_proximos.get(codigo_origem, {})
+    dReal = distancia_real(codigo_origem, codigo_destino)
+
     
+
 
 
 
@@ -116,7 +126,7 @@ def busca_a_estrela(grafo, nome_origem, nome_destino, pontos_proximos, funcaoTot
 if __name__ == "__main__":
 
      # Carregar o arquivo CSV
-    df = pd.read_csv('tempo_carro.csv', index_col=0)
+    df = pd.read_csv('matriz_tempo_carro_horas.csv', index_col=0)
     
     # Encontrar os 5 pontos mais próximos para cada ponto turístico
     pontos_proximos = encontrar_pontos_proximos(df)
