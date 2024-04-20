@@ -120,33 +120,38 @@ def busca_a_estrela(grafo, nome_origem, nome_destino, pontos_proximos):
     fila_prioridade = PriorityQueue()
     fila_prioridade.put((0, codigo_origem))
 
-
     caminho = {codigo_origem: None}
+    custo_acumulado = {codigo_origem: 0}  
 
     while not fila_prioridade.empty():
-        
         custo_total, atual = fila_prioridade.get()
         cod_atual_nome = codigo_para_nome(atual, pontos_turisticos)
 
         if atual == codigo_destino:
-            print("custo total:", custo_total)
             caminho_percurso = reconstruir_caminho(caminho, codigo_origem, codigo_destino, pontos_turisticos)
+            print(caminho_percurso)
             break
             
         vizinhos = pontos_proximos.get(atual, [])
-        
+
         visitados.add(atual)
+        custo_real_acumulado = custo_acumulado[atual]
+        print_fila_prioridade(fila_prioridade)
         for vizinho in vizinhos:
             if vizinho not in visitados:
+                FC = funcao_de_custo_real(atual, vizinho)
                 if vizinho == codigo_destino:
-                    FA = funcao_de_avaliacao(atual, codigo_destino)
+                    FA = funcao_de_avaliacao(codigo_origem, codigo_destino)
                 else:
                     FA = funcao_de_avaliacao(vizinho, codigo_destino)
-                FC = funcao_de_custo_real(atual, vizinho)
                 
-                custo_total_vizinho = FC + FA
+                custo_total_vizinho = custo_real_acumulado + FC + FA
+                        
                 caminho[vizinho] = atual
                 fila_prioridade.put((custo_total_vizinho, vizinho))
+                custo_acumulado[vizinho] = custo_total_vizinho
+                
+                custo_real_acumulado += FC
 
 def reconstruir_caminho(caminho, origem, destino, pontos_turisticos):
     caminho_percurso = []
