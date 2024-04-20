@@ -98,17 +98,19 @@ def distancia_final(codigo_origem, codigo_destino):
 
 def funcao_de_custo_real(codigo_origem, codigo_destino):
     dReal = distancia_real(codigo_origem, codigo_destino)
-    print("dReal: ", dReal)
     tReal = tempo_real(codigo_origem, codigo_destino)
-    print ("tReal: ", tReal)
     resultado = (dReal*tReal) * (5.93 / 2.215)
     return resultado
 
 def funcao_de_avaliacao(codigo_origem, codigo_destino):  
     dFinal = distancia_final(codigo_origem, codigo_destino)
-    print ("dfinal: ", dFinal)
     resultado = (5.93 / (2.215*90)) * (dFinal * dFinal)
     return resultado
+
+def print_fila_prioridade(fila):
+    while not fila.empty():
+        item = fila.get()
+        print(item)
 
 def busca_a_estrela(grafo, nome_origem, nome_destino, pontos_proximos):
     codigo_origem = nome_para_codigo(nome_origem, pontos_turisticos)
@@ -118,6 +120,7 @@ def busca_a_estrela(grafo, nome_origem, nome_destino, pontos_proximos):
     fila_prioridade = PriorityQueue()
     fila_prioridade.put((0, codigo_origem))
 
+
     caminho = {codigo_origem: None}
 
     while not fila_prioridade.empty():
@@ -125,19 +128,14 @@ def busca_a_estrela(grafo, nome_origem, nome_destino, pontos_proximos):
         custo_total, atual = fila_prioridade.get()
         cod_atual_nome = codigo_para_nome(atual, pontos_turisticos)
 
-        #print ("atual: ", cod_atual_nome)
         if atual == codigo_destino:
-            
             print("custo total:", custo_total)
             caminho_percurso = reconstruir_caminho(caminho, codigo_origem, codigo_destino, pontos_turisticos)
-            print("Caminho percorrido:", caminho_percurso)
             break
             
-
-        visitados.add(atual)
         vizinhos = pontos_proximos.get(atual, [])
-        print(vizinhos)
         
+        visitados.add(atual)
         for vizinho in vizinhos:
             if vizinho not in visitados:
                 if vizinho == codigo_destino:
@@ -168,8 +166,8 @@ if __name__ == "__main__":
     
     pontos_proximos = encontrar_pontos_proximos(df)
 
-    origem = "Praça da República - Campo de Santana"
-    destino = "Sambódromo Marquês de Sapucaí"
+    origem = "Sede da empresa (Ponto inicial)"
+    destino = "Templo de Apolo"
 
     caminho = dfs(grafo, origem, destino)
     busca_a_estrela(grafo, origem, destino, pontos_proximos)
