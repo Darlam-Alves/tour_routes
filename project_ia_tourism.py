@@ -1,5 +1,5 @@
 import pandas as pd
-from queue import PriorityQueue
+import heapq
 
 tabela = pd.read_csv("pontos_turisticos-rio.csv")
 
@@ -12,8 +12,6 @@ for index, row in tabela.iterrows():
 
 matriz_distancia = pd.read_csv("matriz_distancia_carro_km.csv", index_col=0)
 
-# Tradução dos códigos dos pontos turísticos para nomes
-matriz_distancia.rename(index=pontos_turisticos, columns=pontos_turisticos, inplace=True)
 
 # Função para adicionar uma aresta no grafo
 def adicionar_aresta(grafo, origem, destino, peso):
@@ -26,7 +24,8 @@ def criar_grafo(matriz_distancia):
     grafo = {}
     for index, row in matriz_distancia.iterrows():
         for col, value in row.items():
-            adicionar_aresta(grafo, index, col, value)
+            peso = float(value.replace(',', '.'))
+            adicionar_aresta(grafo, index, col, peso)
     return grafo
 
 # Criar o grafo
@@ -112,46 +111,28 @@ def print_fila_prioridade(fila):
         item = fila.get()
         print(item)
 
-def busca_a_estrela(grafo, nome_origem, nome_destino, pontos_proximos):
+def busca_a_estrela(grafo, nome_origem, nome_destino, min_pontos, pontos_visitados=[]):
     codigo_origem = nome_para_codigo(nome_origem, pontos_turisticos)
     codigo_destino = nome_para_codigo(nome_destino, pontos_turisticos)
+    
+    pontos_visitados.append(codigo_origem)
+    
+    if codigo_origem == codigo_destino:
+        num_pontos = len(pontos_visitados)
+        print(num_pontos)
+        if  num_pontos >= min_pontos:
+            return [codigo_para_nome(c, pontos_turisticos) for c in pontos_visitados]
+        else:
+            return None
+    
+    for vizinho in grafo[codigo_origem]:
+        if vizinho not in pontos_visitados:
+            caminho_encontrado = busca_a_estrela(grafo, codigo_para_nome(vizinho, pontos_turisticos), nome_destino, min_pontos, pontos_visitados.copy())
+            if caminho_encontrado:
+                return caminho_encontrado
+    
+    return None
 
-    visitados = set()
-    fila_prioridade = PriorityQueue()
-    fila_prioridade.put((0, codigo_origem))
-
-    caminho = {codigo_origem: None}
-    custo_acumulado = {codigo_origem: 0}  
-
-    while not fila_prioridade.empty():
-        custo_total, atual = fila_prioridade.get()
-        cod_atual_nome = codigo_para_nome(atual, pontos_turisticos)
-
-        if atual == codigo_destino:
-            caminho_percurso = reconstruir_caminho(caminho, codigo_origem, codigo_destino, pontos_turisticos)
-            print(caminho_percurso)
-            break
-            
-        vizinhos = pontos_proximos.get(atual, [])
-
-        visitados.add(atual)
-        custo_real_acumulado = custo_acumulado[atual]
-        print_fila_prioridade(fila_prioridade)
-        for vizinho in vizinhos:
-            if vizinho not in visitados:
-                FC = funcao_de_custo_real(atual, vizinho)
-                if vizinho == codigo_destino:
-                    FA = funcao_de_avaliacao(codigo_origem, codigo_destino)
-                else:
-                    FA = funcao_de_avaliacao(vizinho, codigo_destino)
-                
-                custo_total_vizinho = custo_real_acumulado + FC + FA
-                        
-                caminho[vizinho] = atual
-                fila_prioridade.put((custo_total_vizinho, vizinho))
-                custo_acumulado[vizinho] = custo_total_vizinho
-                
-                custo_real_acumulado += FC
 
 def reconstruir_caminho(caminho, origem, destino, pontos_turisticos):
     caminho_percurso = []
@@ -172,10 +153,14 @@ if __name__ == "__main__":
     pontos_proximos = encontrar_pontos_proximos(df)
 
     origem = "Sede da empresa (Ponto inicial)"
-    destino = "Templo de Apolo"
+    destino = "Praça da República - Campo de Santana"
 
-    caminho = dfs(grafo, origem, destino)
-    busca_a_estrela(grafo, origem, destino, pontos_proximos)
+    #caminho = dfs(grafo, origem, destino)
+    caminho_busca = busca_a_estrela(grafo, origem, destino, 10)
+    if (caminho_busca):
+        print(caminho_busca)
+    else:
+        print("não foi possível")
 
 """     for ponto, proximos in pontos_proximos.items():
         print("Os 5 pontos mais próximos a", ponto, "são:")
