@@ -97,17 +97,23 @@ def distancia_final(codigo_origem, codigo_destino):
     return distanciaEuclidiana
 
 def funcao_de_custo_real(codigo_origem, codigo_destino):
+    #print("origem: ", codigo_para_nome(codigo_origem, pontos_turisticos))
+    #print("destino: ", codigo_para_nome(codigo_destino, pontos_turisticos))
     dReal = distancia_real(codigo_origem, codigo_destino)
     tReal = tempo_real(codigo_origem, codigo_destino)
     resultado = (dReal*tReal) * (5.93 / 2.215)
     return resultado
 
-def funcao_de_avaliacao(codigo_origem, codigo_destino):  
+def funcao_de_avaliacao(codigo_origem, codigo_destino): 
+    #print("origem: ", codigo_para_nome(codigo_origem, pontos_turisticos))
+    #print("destino: ", codigo_para_nome(codigo_destino, pontos_turisticos)) 
     dFinal = distancia_final(codigo_origem, codigo_destino)
     resultado = (5.93 / (2.215*90)) * (dFinal * dFinal)
+    #print (resultado)
     return resultado
 
 def heuristica(codigo_origem, codigo_destino):
+    
     custo_real = funcao_de_custo_real(codigo_origem, codigo_destino)
     avaliacao = funcao_de_avaliacao(codigo_origem, codigo_destino)
     total = custo_real + avaliacao
@@ -116,9 +122,9 @@ def heuristica(codigo_origem, codigo_destino):
 def getPriorityQueue(grafo, v, heuristics):
     q = Q.PriorityQueue()
     for node in grafo[v]:
-        heuristica_node = heuristics[node]  # Supondo que 'heuristics' seja um dicionário de heurísticas
-        comprimento_aresta = grafo[v][node]  # Supondo que o comprimento da aresta seja acessado dessa maneira
-        prioridade = float(heuristica_node) + float(comprimento_aresta)
+        heuristica_node = heuristics[node]  
+        comprimento_aresta = grafo[v][node]  
+        prioridade = float(heuristica_node)
         q.put((prioridade, node))
     return q, len(grafo[v])
 
@@ -126,33 +132,45 @@ def busca_a_estrela(grafo, nome_origem, nome_destino, min_pontos):
     codigo_origem = nome_para_codigo(nome_origem, pontos_turisticos)
     codigo_destino = nome_para_codigo(nome_destino, pontos_turisticos)
     
-    heuristics = {}  # Dicionário para armazenar as heurísticas de cada nó
+    heuristics = {} 
     for node in grafo.keys():
-        heuristics[node] = heuristica(codigo_origem, node)  # Calcular a heurística para cada nó
+        #print("node: ", codigo_para_nome(node, pontos_turisticos))
+        heuristics[node] = funcao_de_avaliacao(node, codigo_destino) + funcao_de_custo_real(codigo_origem, node)
+        print("heurist(node)", heuristics[node])
+        #funcao_de_custo_real(codigo_origem, node)
+        #heuristica(codigo_origem, node)  
     
     visited = {}
     for node in grafo.keys():  
         visited[node] = False
     final_path = []
-    goal = busca_a_estrela_util(grafo, codigo_origem, visited, final_path, codigo_destino, 0, heuristics)
+    goal, total_cost = busca_a_estrela_util(grafo, codigo_origem, visited, final_path, codigo_destino, 0, heuristics, 0)
+    print("Custo total do caminho:", total_cost)  # Printa o custo total do caminho
 
-def busca_a_estrela_util(grafo, v, visited, final_path, dest, goal, heuristics):
+def busca_a_estrela_util(grafo, v, visited, final_path, dest, goal, heuristics, total_cost):
     if goal == 1:
-        return goal
+        return goal, total_cost
     visited[v] = True
     final_path.append(v)
     if v == dest:
         goal = 1
         caminho_nomes = [codigo_para_nome(c, pontos_turisticos) for c in final_path]  
         print("Caminho encontrado:", caminho_nomes)  
+        return goal, total_cost  # Retorna o custo total junto com o objetivo alcançado
     else:
         pq, size = getPriorityQueue(grafo, v, heuristics)
         for i in range(size):
             heuristic, node = pq.get()
             if goal != 1:
                 if not visited[node]:
-                    goal = busca_a_estrela_util(grafo, node, visited, final_path, dest, goal, heuristics)
-    return goal
+                    # Atualiza o custo total com o comprimento da aresta atual
+                    edge_length = grafo[v][node]
+                    print("edge lenght: ", edge_length)
+                    new_total_cost = total_cost + edge_length
+                    goal, total_cost = busca_a_estrela_util(grafo, node, visited, final_path, dest, goal, heuristics, new_total_cost)
+                    if goal == 1:
+                        return goal, total_cost
+    return goal, total_cost
 
 
 
@@ -164,7 +182,8 @@ if __name__ == "__main__":
     pontos_proximos = encontrar_pontos_proximos(df)
 
     origem = "Sede da empresa (Ponto inicial)"
-    destino = "Maracanã"
+    destino = "Convento de Nossa Senhora da Conceição da Ajuda"
+    #destino = "Maracanã"
     #destino = "Cristo Redentor"
     #destino = "Parque Nacional da Tijuca"
 
