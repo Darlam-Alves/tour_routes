@@ -1,5 +1,6 @@
 import pandas as pd
 import heapq
+import queue as Q
 
 tabela = pd.read_csv("pontos_turisticos-rio.csv")
 
@@ -106,44 +107,54 @@ def funcao_de_avaliacao(codigo_origem, codigo_destino):
     resultado = (5.93 / (2.215*90)) * (dFinal * dFinal)
     return resultado
 
-def print_fila_prioridade(fila):
-    while not fila.empty():
-        item = fila.get()
-        print(item)
+def heuristica(codigo_origem, codigo_destino):
+    custo_real = funcao_de_custo_real(codigo_origem, codigo_destino)
+    avaliacao = funcao_de_avaliacao(codigo_origem, codigo_destino)
+    total = custo_real + avaliacao
+    return total
 
-def busca_a_estrela(grafo, nome_origem, nome_destino, min_pontos, pontos_visitados=[]):
+def getPriorityQueue(grafo, v, heuristics):
+    q = Q.PriorityQueue()
+    for node in grafo[v]:
+        heuristica_node = heuristics[node]  # Supondo que 'heuristics' seja um dicionário de heurísticas
+        comprimento_aresta = grafo[v][node]  # Supondo que o comprimento da aresta seja acessado dessa maneira
+        prioridade = float(heuristica_node) + float(comprimento_aresta)
+        q.put((prioridade, node))
+    return q, len(grafo[v])
+
+def busca_a_estrela(grafo, nome_origem, nome_destino, min_pontos):
     codigo_origem = nome_para_codigo(nome_origem, pontos_turisticos)
     codigo_destino = nome_para_codigo(nome_destino, pontos_turisticos)
     
-    pontos_visitados.append(codigo_origem)
+    heuristics = {}  # Dicionário para armazenar as heurísticas de cada nó
+    for node in grafo.keys():
+        heuristics[node] = heuristica(codigo_origem, node)  # Calcular a heurística para cada nó
     
-    if codigo_origem == codigo_destino:
-        num_pontos = len(pontos_visitados)
-        print(num_pontos)
-        if  num_pontos >= min_pontos:
-            return [codigo_para_nome(c, pontos_turisticos) for c in pontos_visitados]
-        else:
-            return None
-    
-    for vizinho in grafo[codigo_origem]:
-        if vizinho not in pontos_visitados:
-            caminho_encontrado = busca_a_estrela(grafo, codigo_para_nome(vizinho, pontos_turisticos), nome_destino, min_pontos, pontos_visitados.copy())
-            if caminho_encontrado:
-                return caminho_encontrado
-    
-    return None
+    visited = {}
+    for node in grafo.keys():  
+        visited[node] = False
+    final_path = []
+    goal = busca_a_estrela_util(grafo, codigo_origem, visited, final_path, codigo_destino, 0, heuristics)
+
+def busca_a_estrela_util(grafo, v, visited, final_path, dest, goal, heuristics):
+    if goal == 1:
+        return goal
+    visited[v] = True
+    final_path.append(v)
+    if v == dest:
+        goal = 1
+        caminho_nomes = [codigo_para_nome(c, pontos_turisticos) for c in final_path]  
+        print("Caminho encontrado:", caminho_nomes)  
+    else:
+        pq, size = getPriorityQueue(grafo, v, heuristics)
+        for i in range(size):
+            heuristic, node = pq.get()
+            if goal != 1:
+                if not visited[node]:
+                    goal = busca_a_estrela_util(grafo, node, visited, final_path, dest, goal, heuristics)
+    return goal
 
 
-def reconstruir_caminho(caminho, origem, destino, pontos_turisticos):
-    caminho_percurso = []
-    atual = destino
-    while atual != origem:
-        nome_atual = codigo_para_nome(atual, pontos_turisticos)
-        caminho_percurso.append(nome_atual)
-        atual = caminho[atual]
-    caminho_percurso.append(codigo_para_nome(origem, pontos_turisticos))
-    caminho_percurso.reverse()
-    return caminho_percurso
 
 
 
@@ -153,14 +164,13 @@ if __name__ == "__main__":
     pontos_proximos = encontrar_pontos_proximos(df)
 
     origem = "Sede da empresa (Ponto inicial)"
-    destino = "Praça da República - Campo de Santana"
+    destino = "Maracanã"
+    #destino = "Cristo Redentor"
+    #destino = "Parque Nacional da Tijuca"
 
     #caminho = dfs(grafo, origem, destino)
-    caminho_busca = busca_a_estrela(grafo, origem, destino, 10)
-    if (caminho_busca):
-        print(caminho_busca)
-    else:
-        print("não foi possível")
+    busca_a_estrela(grafo, origem, destino, 20)
+    
 
 """     for ponto, proximos in pontos_proximos.items():
         print("Os 5 pontos mais próximos a", ponto, "são:")
